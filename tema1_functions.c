@@ -77,6 +77,19 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
         stop(home);
         return;
     }
+
+    if(strcmp(command, "mv") == 0) {
+        // Reading the two names
+        char *oldname = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
+        char *newname = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
+        scanf("%s %s", oldname, newname);
+
+        mv(*curr_dir, oldname, newname);
+
+        free(oldname);
+        free(newname);
+        return;
+    }
     
 }
 
@@ -89,6 +102,16 @@ void touch (Dir* parent, char* name) {
             return;
         }
         curr_file = curr_file->next;
+    }
+
+    // Searching for the filename in the directory list
+    Dir *curr_dir = parent->head_children_dirs;
+    while(curr_dir != NULL) {
+        if(strcmp(curr_dir->name, name) == 0) {
+            printf("File already exists\n");
+            return;
+        }
+        curr_dir = curr_dir->next;
     }
 
     // If the name has not been used, a new file is created
@@ -126,6 +149,16 @@ void mkdir (Dir* parent, char* name) {
             return;
         }
         curr_dir = curr_dir->next;
+    }
+
+    // Searching for the directory name in the file list
+    File *curr_file = parent->head_children_files;
+    while(curr_file != NULL) {
+        if(strcmp(curr_file->name, name) == 0) {
+            printf("Directory already exists\n");
+            return;
+        }
+        curr_file = curr_file->next;
     }
 
     // If the name has not been used we create the directory
@@ -268,11 +301,11 @@ void rmdir (Dir* parent, char* name) {
     while(curr_dir->next != NULL) {
         if(strcmp(curr_dir->next->name, name) == 0) {
             Dir *free_dir = curr_dir->next;
-            curr_dir->next = curr_dir->next->next;
+            curr_dir->next = free_dir->next;
 
             remove_dir_rec(&free_dir);
             free(free_dir->name);
-            free(free_dir->next);
+            free(free_dir);
             return;
         }
         curr_dir = curr_dir->next;
@@ -335,16 +368,6 @@ char *pwd (Dir* target) {
 }
 
 void stop (Dir* target) {
-    // Deleting all the directories in the home directory
-    Dir *curr_dir = target->head_children_dirs;
-    Dir *free_dir;
-
-    while(curr_dir != NULL) {
-        free_dir = curr_dir;
-        curr_dir = curr_dir->next;
-        rmdir(target, free_dir->name);
-    }
-
     // Deleting all the files in the home directory
     File *curr_file = target->head_children_files;
     File *free_file;
@@ -354,6 +377,16 @@ void stop (Dir* target) {
         curr_file = curr_file->next;
         free(free_file->name);
         free(free_file);
+    }
+
+    // Deleting all the directories in the home directory
+    Dir *curr_dir = target->head_children_dirs;
+    Dir *free_dir;
+
+    while(curr_dir != NULL) {
+        free_dir = curr_dir;
+        curr_dir = curr_dir->next;
+        rmdir(target, free_dir->name);
     }
 }
 
@@ -378,4 +411,109 @@ void tree (Dir* target, int level) {
     }
 }
 
-void mv(Dir* parent, char *oldname, char *newname) {}
+void mv(Dir* parent, char *oldname, char *newname) {
+    // Bool variable which remembers if the newname has been used
+    bool found_newname = false;
+
+    // Searching for the name in the file list
+    File *curr_file = parent->head_children_files;
+    File *change_file = NULL;
+
+    while(curr_file != NULL) {
+        if(strcmp(curr_file->name, oldname) == 0) {
+            change_file = curr_file;
+        }
+        if(strcmp(curr_file->name, newname) == 0) {
+            found_newname = true;
+        }
+
+        curr_file = curr_file->next;
+    }
+
+    // Searching for the oldname in the directory list
+    Dir *curr_dir = parent->head_children_dirs;
+    Dir *change_dir = NULL;
+
+    while(curr_dir != NULL) {
+        if(strcmp(curr_dir->name, oldname) == 0) {
+            change_dir = curr_dir;
+        }
+        if(strcmp(curr_dir->name, newname) == 0) {
+            found_newname = true;
+        }
+        curr_dir = curr_dir->next;
+    }
+
+    // Error message if the newname is already used
+    if(found_newname == true) {
+        printf("File/Director already exists\n");
+
+        return;
+    }
+
+    // Error message if the oldname doesn't exist
+    if(change_dir == NULL && change_file == NULL) {
+        printf("File/Director not found\n");
+
+        return;
+    }
+
+
+    // Changing a file
+    if(change_file) {
+        // Removing the old file and adding a new file with the newname
+        rm(parent, change_file->name);
+        touch(parent, newname);
+
+        return;
+    }
+
+    // Changing a directory
+    if(change_dir) {
+        // Creating a new directory
+        mkdir(parent, newname);
+
+        // Creating two pointers to point at the position
+        // of the new directory prior made (which is put in the last position
+        // of the list) and a pointer to the element before the oldname
+        // element in the list
+        Dir *last_dir;
+        Dir *bef_change_dir;
+        curr_dir = parent->head_children_dirs;
+
+        while(curr_dir != NULL) {
+            if(curr_dir->next == NULL) {
+                last_dir = curr_dir;
+            }
+            if(curr_dir->next == change_dir) {
+                bef_change_dir = curr_dir;
+            }
+
+            curr_dir = curr_dir->next;
+        }
+
+        // Changing the new directory's data and freeing the memory of the oldname
+
+        // Verify if we have to change the first directory in the list
+        if(change_dir == parent->head_children_dirs) {
+            parent->head_children_dirs = change_dir->next;
+            last_dir->head_children_dirs = change_dir->head_children_dirs;
+            last_dir->head_children_files = change_dir->head_children_files;
+            free(change_dir->name);
+            free(change_dir);
+            
+            return;
+        }
+
+        // In the other cases
+        last_dir->head_children_dirs = change_dir->head_children_dirs;
+        last_dir->head_children_files = change_dir->head_children_files;
+        bef_change_dir->next = bef_change_dir->next->next;
+        free(change_dir->name);
+        free(change_dir);
+    
+
+        return;
+    }
+
+}
