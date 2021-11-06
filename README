@@ -1,0 +1,78 @@
+Tema-1 README -- Bivolaru Andra, 323 CA
+
+// MAIN function -- tema1.c
+
+	Firstly, in the main function is allocated memory for the name of the command, in order to read it, and for the home directory.
+	Then, the home's directory fields are initialised: the name, the head_chidren lists, its parent and its next.
+
+	After, it is used a curr_dir variable to remember the current directory in which a command is being done.
+
+	The do while() scans the command given as input and calls the function call_command to call the needed function. This loop stops when the command stop is introduced.
+
+	In the end, the main function frees all the memory allocated within it.
+
+
+// FUNCTIONS HEADER -- tema1_functions.h
+
+	In this file are listed all the function either used by main either by the tema1_functions.c file. It also contains the characteristics of the structures used, and a macro, MAX_INPUT_LINE_SIZE, used for allocating memory for all the strings.
+	This file is included in the amin and functions files.
+
+// FUNCTIONS FILE -- tema1_functions.c
+	
+	For the functions file it is included the header file in order to use the Dir, File structures and also to call functions from other functions.
+
+* call_command ()
+	-- This function is called by the main function to make the wanted changes in the current directory. It calls the function describing each command (touch, mkdir, ls, ...) and scanning, if necessary the other needed parameters. For the commands which require another parameter except the directory working on, each if() allocates memory, and after using the readed parameter, it frees that memory.
+	-- The call_command() requires as parameters the name of the command, the current directory working with, which is a double pointer to change its value for the cd command. It also requires to send the home directory for the stop function to delete all the directories in it.
+
+
+*touch()
+	-- The touch command creates a new file with the name name in the parent directory. Firstly, this function searches in the file and in the directory lists to see if the name has been already used and prints an error message if so.
+	-- If the name hasn't been used, the function allocates memory for the new file and initialises its fields. After being created, it needs to be placed in the parents head_children_files list.
+	-- Firstly, it checks if the list is empty and initialise the heard of the file list to it, or else if it isn't empty it places the new file at the end of the list.
+
+
+*mkdir()
+	-- This function creates a new directory and places it at the end of the parent directory list. It works just like touch, and also displays an error if the name is already used in the parent directory.
+
+
+*ls()
+	-- The ls function prints all the directories name and then all the file names on different lines. Using a current we iterate through the directory and then the file lists, printing out each of their names.
+
+
+*rm()
+	-- This function removes a file from a directory. It searches for it by its name and frees its allocated memory, If the directory doesn't contain any files or the file given does not exist than an error message appears on the screen.
+
+
+*rmdir()
+	-- This function searches for the directory that is to be deleted by its name and iterates through the parents directory list. After it found it, it calls the remove_dir_rec() function which is a recursive function that  deletes all the contains of a directory: files and other directories.
+	-- After the function is called, the memory allocated for the directory is freed. If the directory does not exist, an error message prints.
+
+
+*cd()
+	-- cd() function changes the current directory to another directory. If the given parameter is "..", the directory changes to the parent directory.
+	-- if it isn't, than we search by the directorys name in the current directory, and if found the pointer directory changes its position.
+
+
+*pwd()
+	-- This function prints the working directory. It calls a recursive function (pwd_r()) that prints the name of the parent of the current directory until it reaches home.
+	-- The function remembers the name of the working directory in a string variable, called working_directory, and at the end it returns it.
+
+
+*stop()
+	-- This function is called when no more commands are to be introduced. It frees all the memory and terminates the program.
+	-- Firstly, it frees all the memory allocated for the files in the home directory.
+	-- Then, it calls the rmdir() function and frees all the memory allocated for the directories from home.
+
+
+*tree()
+	-- The function shows the tree of the current directory. It prints all the files and directories from the current directory and also other files/directories that are contained by the directories in the current.
+	-- It is a recursive function, that based on the current level it prints a number of spaces. AFter printing the spaces it prints the name of all the directories, and than all the files, and so on for the other directories contained.
+
+
+*mv()
+	-- The mv file firstly checks if the parameters sent are correct. It searches for the names in the file and the directory lists, and prints an error message if the name is not taken by any of them.
+	-- If the newname that is trying to be used is already associated with another file/directory an error message will also occur.
+	-- If the function found that a file is to be changed, the memory of the old file is freed and a new file is put in the list with the help of rm() and touch() functions.
+	-- If a directorys name is to be changed, then a new directory is made. After that, it is searched the directory prior to the old dir and also a pointer called last_dir remembers the Dir newly made.
+	-- After this, the directories and files from the old dir are transferred to the new dir, and also the old dir's memory is freed.
