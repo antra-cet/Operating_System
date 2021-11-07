@@ -8,6 +8,7 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     // Calling the wanted command
 
     if(strcmp(command, "touch") == 0) {
+        // Allocating memory for the name of the new file
         char *filename = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
         scanf("%s", filename);
 
@@ -17,6 +18,7 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     }
 
     if(strcmp(command, "mkdir") == 0) {
+        // Allocating memory for the name of the new directory
         char *directoryname = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
         scanf("%s", directoryname);
 
@@ -31,6 +33,7 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     }
 
     if(strcmp(command, "rm") == 0) {
+        // Allocating memory for the name of the file
         char *removefile = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
         scanf("%s", removefile);
 
@@ -40,6 +43,7 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     }
 
     if(strcmp(command, "rmdir") == 0) {
+        // Allocating memory for the name of the directory
         char *removedir = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
         scanf("%s", removedir);
 
@@ -49,6 +53,7 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     }
 
     if(strcmp(command, "cd") == 0) {
+        // Allocating memory for the name of the directory
         char *dirname = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
         scanf("%s", dirname);
 
@@ -63,6 +68,7 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     }
 
     if(strcmp(command, "pwd") == 0) {
+        // Prints through a string the working directory
         char *working_directory = pwd(*curr_dir);
         printf("%s\n", working_directory);
 
@@ -79,7 +85,8 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     }
 
     if(strcmp(command, "mv") == 0) {
-        // Reading the two names
+        // Reading the two names: the old file/directory name and the name
+        // for the new file/directory.
         char *oldname = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
         char *newname = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
         scanf("%s %s", oldname, newname);
@@ -93,6 +100,8 @@ void call_command(char *command, Dir **curr_dir, Dir *home) {
     
 }
 
+
+/* Creates a new file */
 void touch (Dir* parent, char* name) {
     // Searching for a file with this name
     File *curr_file = parent->head_children_files;
@@ -140,6 +149,8 @@ void touch (Dir* parent, char* name) {
     new_file->next = NULL;
 }
 
+
+/* Creates a new directory */
 void mkdir (Dir* parent, char* name) {
     // Searching if a directory with this name exists
     Dir *curr_dir = parent->head_children_dirs;
@@ -189,6 +200,9 @@ void mkdir (Dir* parent, char* name) {
     new_dir->next = NULL;
 }
 
+
+/* Printing out the name of all the directories and then the
+names of all the files */
 void ls (Dir* parent) {
     // Printing the name of all the directories
     Dir *curr_dir = parent->head_children_dirs;
@@ -205,6 +219,8 @@ void ls (Dir* parent) {
     }
 }
 
+
+/* Removing the file with the name of name from the current directory */
 void rm (Dir* parent, char* name) {
     File *curr_file = parent->head_children_files;
 
@@ -244,6 +260,8 @@ void rm (Dir* parent, char* name) {
 
 }
 
+
+/* Function called in the rmdir to remove all the contains of a dir */
 void remove_dir_rec(Dir **parent) {
     // Verify if the directory is null
     if(*parent == NULL) {
@@ -277,6 +295,8 @@ void remove_dir_rec(Dir **parent) {
     }
 }
 
+
+/* Removes a directory */
 void rmdir (Dir* parent, char* name) {
     // Searching for the directory in the parent
     Dir *curr_dir = parent->head_children_dirs;
@@ -297,7 +317,7 @@ void rmdir (Dir* parent, char* name) {
         return;
     }
 
-
+    // Searching for the directory in the rest of the list
     while(curr_dir->next != NULL) {
         if(strcmp(curr_dir->next->name, name) == 0) {
             Dir *free_dir = curr_dir->next;
@@ -315,6 +335,8 @@ void rmdir (Dir* parent, char* name) {
     printf("Could not find the dir\n");
 }
 
+
+/* Changing the current directory */
 void cd(Dir** target, char *name) {
     // Checking if the name of the directory is ".."
     if(strcmp(name, "..") == 0) {
@@ -340,6 +362,9 @@ void cd(Dir** target, char *name) {
     }
 }
 
+
+/* Function called by pwd() to remember in the working_directory string
+the names of all the directories */
 void pwd_r(Dir *target, char *working_directory) {
     // Verifying if we are still in a directory
     if(target == NULL) {
@@ -354,6 +379,8 @@ void pwd_r(Dir *target, char *working_directory) {
     strcat(working_directory, target->name);
 }
 
+
+/* Function that returns a string containing the current working directory */
 char *pwd (Dir* target) {
     // Allocating memory for the string that remembers the working directory
     char *working_directory = malloc(sizeof(char) * MAX_INPUT_LINE_SIZE);
@@ -367,6 +394,8 @@ char *pwd (Dir* target) {
     return working_directory;
 }
 
+
+/* Function that frees all the memory allocated */
 void stop (Dir* target) {
     // Deleting all the files in the home directory
     File *curr_file = target->head_children_files;
@@ -390,7 +419,10 @@ void stop (Dir* target) {
     }
 }
 
+
+/* Prints the tree of the current directory */
 void tree (Dir* target, int level) {
+    // Printing the directories recursively
     Dir *curr_dir = target->head_children_dirs;
     while(curr_dir != NULL) {
         for(int i = 0; i < level; i++) {
@@ -401,6 +433,7 @@ void tree (Dir* target, int level) {
         curr_dir = curr_dir->next;
     }
 
+    // Printing the files contianes in the dir
     File *curr_file = target->head_children_files;
     while(curr_file != NULL) {
         for(int i = 0; i < level; i++) {
@@ -411,6 +444,8 @@ void tree (Dir* target, int level) {
     }
 }
 
+
+/* Function that changes the name of a file/directory */
 void mv(Dir* parent, char *oldname, char *newname) {
     // Bool variable which remembers if the newname has been used
     bool found_newname = false;
